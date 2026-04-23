@@ -19,14 +19,26 @@ function Chat() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const messagesEndRef = useRef(null)
   const navigate = useNavigate()
-  const { user, logout, isAnonymous, anonymousMessageCount, anonymousLimit, incrementAnonymousMessage, hasReachedAnonymousLimit } = useAuth()
+  const { user, logout, getToken, isAnonymous, anonymousMessageCount, anonymousLimit, incrementAnonymousMessage, hasReachedAnonymousLimit } = useAuth()
 
   const API_URL = '/api/chat'
+
+  // Helper to get auth headers
+  const getAuthHeaders = () => {
+    const token = getToken()
+    const headers = { 'Content-Type': 'application/json' }
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+    return headers
+  }
 
   // Fetch conversations list
   const fetchConversations = async () => {
     try {
-      const res = await fetch(`${API_URL}/conversations`)
+      const res = await fetch(`${API_URL}/conversations`, {
+        headers: getAuthHeaders()
+      })
       const data = await res.json()
       setConversations(data)
     } catch (error) {
@@ -50,7 +62,10 @@ function Chat() {
   // Start new conversation
   const startNewChat = async () => {
     try {
-      const res = await fetch(`${API_URL}/new`, { method: 'POST' })
+      const res = await fetch(`${API_URL}/new`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      })
       const data = await res.json()
       setSessionId(data.sessionId)
       setMessages([{
@@ -75,7 +90,9 @@ function Chat() {
   // Load conversation
   const loadConversation = async (id) => {
     try {
-      const res = await fetch(`${API_URL}/history/${id}`)
+      const res = await fetch(`${API_URL}/history/${id}`, {
+        headers: getAuthHeaders()
+      })
       const data = await res.json()
       setSessionId(data.sessionId)
       setMessages(data.messages.map(m => ({
@@ -91,7 +108,10 @@ function Chat() {
   // Delete conversation
   const deleteConversation = async (id) => {
     try {
-      await fetch(`${API_URL}/conversations/${id}`, { method: 'DELETE' })
+      await fetch(`${API_URL}/conversations/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      })
       if (sessionId === id) {
         startNewChat()
       }
@@ -128,7 +148,7 @@ function Chat() {
     try {
       const res = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ message: userMessage, sessionId }),
       })
 

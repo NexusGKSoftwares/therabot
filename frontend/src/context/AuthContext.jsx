@@ -29,55 +29,83 @@ export function AuthProvider({ children }) {
     setLoading(false)
   }, [])
 
+  const API_URL = '/api/auth'
+
   const login = async (email, password) => {
-    // Simulate API call - replace with actual backend integration
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (email && password) {
-          const mockUser = {
-            id: '1',
-            email,
-            name: email.split('@')[0],
-            avatar: null
-          }
-          setUser(mockUser)
-          localStorage.setItem('therabot_user', JSON.stringify(mockUser))
-          resolve(mockUser)
-        } else {
-          reject(new Error('Invalid credentials'))
-        }
-      }, 800)
-    })
+    try {
+      const res = await fetch(`${API_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Login failed')
+      }
+
+      // Store token and user
+      localStorage.setItem('therabot_token', data.token)
+      localStorage.setItem('therabot_user', JSON.stringify(data.user))
+
+      // Clear anonymous mode if active
+      localStorage.removeItem('therabot_anonymous')
+      localStorage.removeItem('therabot_anonymous_messages')
+      setIsAnonymous(false)
+      setAnonymousMessageCount(0)
+
+      setUser(data.user)
+      return data.user
+    } catch (error) {
+      throw new Error(error.message || 'Login failed')
+    }
   }
 
   const register = async (name, email, password) => {
-    // Simulate API call - replace with actual backend integration
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (name && email && password) {
-          const mockUser = {
-            id: '1',
-            email,
-            name,
-            avatar: null
-          }
-          setUser(mockUser)
-          localStorage.setItem('therabot_user', JSON.stringify(mockUser))
-          resolve(mockUser)
-        } else {
-          reject(new Error('Registration failed'))
-        }
-      }, 800)
-    })
+    try {
+      const res = await fetch(`${API_URL}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Registration failed')
+      }
+
+      // Store token and user
+      localStorage.setItem('therabot_token', data.token)
+      localStorage.setItem('therabot_user', JSON.stringify(data.user))
+
+      // Clear anonymous mode if active
+      localStorage.removeItem('therabot_anonymous')
+      localStorage.removeItem('therabot_anonymous_messages')
+      setIsAnonymous(false)
+      setAnonymousMessageCount(0)
+
+      setUser(data.user)
+      return data.user
+    } catch (error) {
+      throw new Error(error.message || 'Registration failed')
+    }
   }
 
   const logout = () => {
     setUser(null)
     setIsAnonymous(false)
     setAnonymousMessageCount(0)
+    localStorage.removeItem('therabot_token')
     localStorage.removeItem('therabot_user')
     localStorage.removeItem('therabot_anonymous')
     localStorage.removeItem('therabot_anonymous_messages')
+  }
+
+  // Get auth token for API requests
+  const getToken = () => {
+    return localStorage.getItem('therabot_token')
   }
 
   const startAnonymous = () => {
@@ -119,6 +147,7 @@ export function AuthProvider({ children }) {
     register,
     logout,
     forgotPassword,
+    getToken,
     loading,
     isAuthenticated: !!user,
     isAnonymous,
