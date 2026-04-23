@@ -252,7 +252,7 @@ function Chat() {
       />
       <div className="flex h-screen bg-gray-50">
         {/* Sidebar - Desktop always visible, mobile conditional */}
-        {(sidebarOpen || window.innerWidth >= 1024) && (
+        {(sidebarOpen || isDesktop) && (
           <div className="lg:block">
             <Sidebar
               conversations={conversations}
