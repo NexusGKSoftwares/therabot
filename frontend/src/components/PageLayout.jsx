@@ -1,15 +1,26 @@
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import Header from './Header'
 import Sidebar from './Sidebar'
 import SEO from './SEO'
 import BottomNav from './BottomNav'
 import SessionWarning from './SessionWarning'
 
+// Hook to subscribe to window width changes
+function useWindowWidth() {
+  return useSyncExternalStore(
+    (callback) => {
+      window.addEventListener('resize', callback)
+      return () => window.removeEventListener('resize', callback)
+    },
+    () => window.innerWidth,
+    () => 1024 // SSR fallback
+  )
+}
+
 function PageLayout({ children, title, currentPage = 'chat' }) {
-  const [sidebarOpen, setSidebarOpen] = useState(() => {
-    // Initialize based on screen size: closed on mobile, open on desktop
-    return window.innerWidth >= 1024
-  })
+  const windowWidth = useWindowWidth()
+  const isDesktop = windowWidth >= 1024
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen)
@@ -21,7 +32,7 @@ function PageLayout({ children, title, currentPage = 'chat' }) {
       <SessionWarning />
       <div className="min-h-screen bg-gray-50 flex">
         {/* Sidebar - Desktop always visible, mobile conditional */}
-        {(sidebarOpen || window.innerWidth >= 1024) && (
+        {(sidebarOpen || isDesktop) && (
           <div className="lg:w-80 flex-shrink-0">
             <Sidebar
               conversations={[]}

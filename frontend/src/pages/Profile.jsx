@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, Award, Target, Heart, Brain, Shield } from 'lucide-react'
+import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, Award, Target, Heart, Brain, Shield, MessageSquare } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import PageLayout from '../components/PageLayout'
 
