@@ -120,7 +120,14 @@ export function AuthProvider({ children }) {
     logout,
     forgotPassword,
     loading,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    isAnonymous,
+    anonymousMessageCount,
+    anonymousLimit: ANONYMOUS_MESSAGE_LIMIT,
+    startAnonymous,
+    incrementAnonymousMessage,
+    hasReachedAnonymousLimit,
+    canAccessChat: !!user || isAnonymous
   }
 
   return (

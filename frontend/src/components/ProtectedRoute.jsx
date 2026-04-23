@@ -1,8 +1,8 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-function ProtectedRoute({ children }) {
-  const { isAuthenticated, loading } = useAuth()
+function ProtectedRoute({ children, allowAnonymous = true }) {
+  const { isAuthenticated, isAnonymous, loading, canAccessChat } = useAuth()
 
   if (loading) {
     return (
@@ -15,7 +15,13 @@ function ProtectedRoute({ children }) {
     )
   }
 
-  if (!isAuthenticated) {
+  // If anonymous is allowed and user can access chat (authenticated or anonymous)
+  if (allowAnonymous && canAccessChat) {
+    return children
+  }
+
+  // If anonymous not allowed or user cannot access chat, require authentication
+  if (!isAuthenticated && !isAnonymous) {
     return <Navigate to="/login" replace />
   }
 

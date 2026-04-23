@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { Send, AlertTriangle, LogOut, Sparkles } from 'lucide-react'
+import { Send, AlertTriangle, LogOut, Sparkles, Lock, MessageCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import ChatMessage from './ChatMessage'
 import TypingIndicator from './TypingIndicator'
@@ -15,8 +16,10 @@ function Chat() {
   const [conversations, setConversations] = useState([])
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const messagesEndRef = useRef(null)
-  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+  const { user, logout, isAnonymous, anonymousMessageCount, anonymousLimit, incrementAnonymousMessage, hasReachedAnonymousLimit } = useAuth()
 
   const API_URL = '/api/chat'
 
@@ -102,6 +105,12 @@ function Chat() {
     e.preventDefault()
     if (!inputMessage.trim() || isLoading) return
 
+    // Check if anonymous user has reached limit
+    if (hasReachedAnonymousLimit()) {
+      setShowLoginPrompt(true)
+      return
+    }
+
     const userMessage = inputMessage.trim()
     setInputMessage('')
     setIsLoading(true)
@@ -112,6 +121,9 @@ function Chat() {
       content: userMessage,
       timestamp: new Date()
     }])
+
+    // Increment anonymous message count
+    const reachedLimit = incrementAnonymousMessage()
 
     try {
       const res = await fetch(API_URL, {
@@ -134,6 +146,11 @@ function Chat() {
         setShowCrisisWarning(true)
       }
 
+      // Show login prompt if anonymous limit reached
+      if (reachedLimit) {
+        setShowLoginPrompt(true)
+      }
+
       // Refresh conversations list (includes new title if generated)
       await fetchConversations()
     } catch (error) {
@@ -146,6 +163,14 @@ function Chat() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleLoginRedirect = () => {
+    navigate('/login')
+  }
+
+  const handleRegisterRedirect = () => {
+    navigate('/register')
   }
 
   // Start on mount if no session
@@ -161,8 +186,21 @@ function Chat() {
 
   // Get user's initials
   const getInitials = () => {
+    if (isAnonymous) return 'G'
     if (!user?.name) return '?'
     return user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  }
+
+  // Get display name
+  const getDisplayName = () => {
+    if (isAnonymous) return 'Guest'
+    return user?.name || 'User'
+  }
+
+  // Get display email
+  const getDisplayEmail = () => {
+    if (isAnonymous) return `${anonymousMessageCount}/${anonymousLimit} messages`
+    return user?.email
   }
 
   return (
@@ -180,8 +218,8 @@ function Chat() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        <Header 
-          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} 
+        <Header
+          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           sidebarOpen={sidebarOpen}
         >
           {/* User Menu */}
@@ -194,8 +232,8 @@ function Chat() {
                 {getInitials()}
               </div>
               <div className="hidden md:block text-left">
-                <p className="text-sm font-semibold text-gray-900">{user?.name || 'User'}</p>
-                <p className="text-xs text-gray-500">{user?.email}</p>
+                <p className="text-sm font-semibold text-gray-900">{getDisplayName()}</p>
+                <p className="text-xs text-gray-500">{getDisplayEmail()}</p>
               </div>
             </button>
 
@@ -203,15 +241,28 @@ function Chat() {
             {showUserMenu && (
               <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 animate-fade-in">
                 <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
+                  <p className="text-sm font-semibold text-gray-900">{getDisplayName()}</p>
+                  <p className="text-xs text-gray-500">{getDisplayEmail()}</p>
+                  {isAnonymous && (
+                    <div className="mt-2">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full transition-all"
+                          style={{ width: `${(anonymousMessageCount / anonymousLimit) * 100}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {anonymousMessageCount} of {anonymousLimit} free messages used
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  Sign out
+                  {isAnonymous ? 'Exit' : 'Sign out'}
                 </button>
               </div>
             )}
@@ -303,8 +354,8 @@ function Chat() {
 
       {/* Click outside to close user menu */}
       {showUserMenu && (
-        <div 
-          className="fixed inset-0 z-40" 
+        <div
+          className="fixed inset-0 z-40"
           onClick={() => setShowUserMenu(false)}
         />
       )}

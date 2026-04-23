@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
 import Chat from './components/Chat'
+import Welcome from './components/Welcome'
 import './App.css'
 
 function App() {
@@ -15,14 +16,15 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route 
-            path="/chat" 
+          <Route
+            path="/chat"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowAnonymous={true}>
                 <Chat />
               </ProtectedRoute>
-            } 
+            }
           />
+          <Route path="/welcome" element={<Welcome />} />
           <Route path="/" element={<Navigate to="/chat" replace />} />
         </Routes>
       </Router>
