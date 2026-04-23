@@ -2,19 +2,29 @@ import { createContext, useContext, useState, useEffect } from 'react'
 
 const AuthContext = createContext(null)
 
+const ANONYMOUS_MESSAGE_LIMIT = 5
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [isAnonymous, setIsAnonymous] = useState(false)
+  const [anonymousMessageCount, setAnonymousMessageCount] = useState(0)
 
   useEffect(() => {
     // Check for stored auth token/user
     const storedUser = localStorage.getItem('therabot_user')
+    const storedAnonymous = localStorage.getItem('therabot_anonymous')
+    const storedMessageCount = localStorage.getItem('therabot_anonymous_messages')
+
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser))
       } catch (e) {
         localStorage.removeItem('therabot_user')
       }
+    } else if (storedAnonymous === 'true') {
+      setIsAnonymous(true)
+      setAnonymousMessageCount(parseInt(storedMessageCount) || 0)
     }
     setLoading(false)
   }, [])
@@ -63,7 +73,32 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     setUser(null)
+    setIsAnonymous(false)
+    setAnonymousMessageCount(0)
     localStorage.removeItem('therabot_user')
+    localStorage.removeItem('therabot_anonymous')
+    localStorage.removeItem('therabot_anonymous_messages')
+  }
+
+  const startAnonymous = () => {
+    setIsAnonymous(true)
+    setAnonymousMessageCount(0)
+    localStorage.setItem('therabot_anonymous', 'true')
+    localStorage.setItem('therabot_anonymous_messages', '0')
+  }
+
+  const incrementAnonymousMessage = () => {
+    if (isAnonymous) {
+      const newCount = anonymousMessageCount + 1
+      setAnonymousMessageCount(newCount)
+      localStorage.setItem('therabot_anonymous_messages', newCount.toString())
+      return newCount >= ANONYMOUS_MESSAGE_LIMIT
+    }
+    return false
+  }
+
+  const hasReachedAnonymousLimit = () => {
+    return isAnonymous && anonymousMessageCount >= ANONYMOUS_MESSAGE_LIMIT
   }
 
   const forgotPassword = async (email) => {
