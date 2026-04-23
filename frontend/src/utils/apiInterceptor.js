@@ -28,7 +28,7 @@ export const createApiFetch = (auth) => {
 
     // Check for 401 Unauthorized response
     if (response.status === 401) {
-      console.log('🚨 Received 401 response, forcing logout...')
+      console.log('🚨 Received 401 response (logout disabled for testing)')
       console.log('Response URL:', url)
       console.log('Response status:', response.status)
 
@@ -40,8 +40,9 @@ export const createApiFetch = (auth) => {
         console.log('Could not parse error response')
       }
 
-      auth.logout(true) // Force logout and redirect
-      throw new Error('Session expired')
+      // Commented out logout for testing
+      // auth.logout(true) // Force logout and redirect
+      throw new Error('Authentication failed - testing mode')
     }
 
     // Check for 403 Forbidden response

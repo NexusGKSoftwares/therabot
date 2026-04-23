@@ -73,9 +73,10 @@ export const getAIResponse = async (userMessage, conversationHistory = [], retry
 
     // Create AbortController for timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeouts[retryCount] || 30000);
+    const timeoutId = setTimeout(() => controller.abort(), timeouts[retryCount]); // Progressive timeout
 
-    const response = await fetch(OPENROUTER_URL, {
+    // Try different fetch options for better compatibility
+    const fetchOptions = {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
@@ -89,8 +90,17 @@ export const getAIResponse = async (userMessage, conversationHistory = [], retry
         temperature: 0.7,
         max_tokens: 500
       }),
-      signal: controller.signal
-    });
+      signal: controller.signal,
+      // Add these options for better network handling
+      timeout: timeouts[retryCount],
+      compress: true
+    };
+
+    console.log(`Attempting OpenRouter API call (attempt ${retryCount + 1}/${maxRetries + 1})`);
+    console.log(`Model: ${OPENROUTER_MODEL}`);
+    console.log(`API Key starts with: ${OPENROUTER_API_KEY?.substring(0, 10)}...`);
+
+    const response = await fetch(OPENROUTER_URL, fetchOptions);
 
     clearTimeout(timeoutId);
 
