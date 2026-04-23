@@ -1,4 +1,5 @@
 import { Heart, Shield, Menu, X } from 'lucide-react'
+import ProfileMenu from './ProfileMenu'
 
 function Header({ onToggleSidebar, sidebarOpen, children }) {
   return (
@@ -19,12 +20,7 @@ function Header({ onToggleSidebar, sidebarOpen, children }) {
             <p className="text-xs text-gray-500">AI Mental Health Support</p>
           </div>
         </div>
-        {children || (
-          <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
-            <Shield className="w-3 h-3" />
-            <span>Anonymous & Secure</span>
-          </div>
-        )}
+        {children || <ProfileMenu />}
       </div>
     </header>
   )

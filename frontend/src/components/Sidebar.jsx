@@ -1,5 +1,5 @@
 import { useState, useMemo, createContext, useContext } from 'react'
-import { MessageSquare, Plus, Trash2, Calendar, Clock, ChevronRight, Sparkles, Bot } from 'lucide-react'
+import { MessageSquare, Plus, Trash2, Calendar, Clock, ChevronRight, Sparkles, Bot, Settings, BarChart3, User } from 'lucide-react'
 
 // Theme System - Faded, muted tones
 const THEMES = {
@@ -236,6 +236,33 @@ function Sidebar({ conversations, currentSessionId, onSelectConversation, onNewC
             <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-200" />
             <span>New Chat</span>
           </button>
+        </div>
+
+        {/* Navigation Menu */}
+        <div className={`px-4 py-3 border-b ${currentTheme.border}`}>
+          <nav className="space-y-1">
+            <button
+              onClick={() => window.location.href = '/settings'}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg ${currentTheme.hover} ${currentTheme.text} transition-colors`}
+            >
+              <ThemedIcon><Settings className="w-4 h-4" /></ThemedIcon>
+              <span className="text-sm font-medium">Settings</span>
+            </button>
+            <button
+              onClick={() => window.location.href = '/analytics'}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg ${currentTheme.hover} ${currentTheme.text} transition-colors`}
+            >
+              <ThemedIcon><BarChart3 className="w-4 h-4" /></ThemedIcon>
+              <span className="text-sm font-medium">Mood Analytics</span>
+            </button>
+            <button
+              onClick={() => window.location.href = '/profile'}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg ${currentTheme.hover} ${currentTheme.text} transition-colors`}
+            >
+              <ThemedIcon><User className="w-4 h-4" /></ThemedIcon>
+              <span className="text-sm font-medium">Profile</span>
+            </button>
+          </nav>
         </div>
 
         {/* Conversations List */}
