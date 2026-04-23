@@ -51,7 +51,7 @@ export function AuthProvider({ children }) {
     setLoading(false)
   }, [])
 
-  const API_URL = '/api/auth'
+  const API_URL = 'https://therabot-7zir.vercel.app/api/auth'
 
   const login = async (email, password) => {
     try {
